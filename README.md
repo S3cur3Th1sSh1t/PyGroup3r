@@ -23,9 +23,11 @@ environments, which is effectively unsearchable.
 ## Install
 
 ```bash
-python3 -m pip install impacket pycryptodomex
-# for the test suite:
-python3 -m pip install pytest playwright && python3 -m playwright install chromium
+pipx install git+https://github.com/magev0/PyGroup3r.git
+# run it with:
+pygroup3r -h
+# upgrade later with:
+pipx upgrade pygroup3r
 ```
 
 Python 3.12+. Runtime dependencies are impacket and pycryptodomex only; the HTML
