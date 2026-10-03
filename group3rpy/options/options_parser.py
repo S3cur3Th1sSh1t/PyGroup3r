@@ -61,6 +61,7 @@ _DECLARATION_ORDER: List[str] = [
     "scope",
     "scope-users",
     "bloodhound",
+    "show-blob",
 ]
 
 # Long name -> (argparse dest, is switch).
@@ -89,6 +90,7 @@ _ARG_INFO = {
     "scope": ("scope", True),
     "scope-users": ("scope_users", True),
     "bloodhound": ("bloodhound", False),
+    "show-blob": ("show_blob", True),
 }
 
 
@@ -99,7 +101,7 @@ def build_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(prog="group3r", add_help=False)
 
-    # letters i haven't used abegijklmnw
+    # letters i haven't used aegijklmnw
     # parser.Arguments.Add(new ValueArgument<string>('z', "config", "Path to a .toml config file. Run with 'generate' to puke a sample config file into the working directory."));
     parser.add_argument("-c", "--dc", help="Target Domain controller")
     parser.add_argument("-d", "--domain", help="Domain to query.")
@@ -185,6 +187,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--bloodhound",
         help="PORT ADDITION: path prefix for BloodHound edge export; writes "
         "<prefix>.json and <prefix>.cypher. Implies --scope.",
+    )
+    parser.add_argument(
+        "-b",
+        "--show-blob",
+        action="store_true",
+        help="PORT ADDITION: show full REG_BINARY hex (e.g. EFSBlob) instead of 2-line preview.",
     )
     return parser
 
@@ -358,6 +366,9 @@ def parse(args: List[str], mq):
             # Edges are meaningless without knowing which computers a GPO reaches.
             options.resolve_scope = True
             mq.degub("Writing BloodHound edge export to " + value)
+        elif long_name == "show-blob":
+            options.show_blob = True
+            mq.degub("Showing full REG_BINARY blobs.")
         else:
             raise CommandLineArgumentException(
                 "Something went real squirrelly in the command line args.", value

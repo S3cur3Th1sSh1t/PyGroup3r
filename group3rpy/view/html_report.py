@@ -198,9 +198,10 @@ class HtmlReportBuilder:
     # were listed, so the per-GPO list is capped and the true count kept alongside.
     MAX_LISTED_COMPUTERS = 500
 
-    def __init__(self, domain: Optional[str] = None, command_line: Optional[str] = None):
+    def __init__(self, domain: Optional[str] = None, command_line: Optional[str] = None, show_blob: bool = False):
         self.domain = domain or ""
         self.command_line = command_line or ""
+        self.show_blob = show_blob
         self.table = StringTable()
         self.table.intern("")  # index 0
 
@@ -364,6 +365,10 @@ class HtmlReportBuilder:
         self.f_source.append(table.intern(getattr(setting, "source", None)))
 
         pairs = _flatten(setting) if setting is not None else []
+        if not getattr(self, "show_blob", False):
+            # Keep the report compact by default: value_string already holds the
+            # 2-line preview, and value_bytes would inline the full blob hex.
+            pairs = [(k, v) for k, v in pairs if not k.endswith("value_bytes")]
         self.f_fields.append(
             [[table.intern(key), table.intern(value)] for key, value in pairs]
         )

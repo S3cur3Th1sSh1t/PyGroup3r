@@ -114,6 +114,7 @@ class Group3rRunner:
                 or getattr(options, "sysvol_path", None)
                 or "",
                 command_line=" ".join(sys.argv[1:]),
+                show_blob=getattr(options, "show_blob", False),
             )
             scopes = getattr(controller, "scopes", {}) or {}
             for gpo_result in controller.gpo_results:

@@ -56,6 +56,8 @@ class GrouperOptions:
         self.resolve_scope: bool = False
         self.scope_users: bool = False
         self.bloodhound_path: Optional[str] = None
+        # PORT ADDITION: show full REG_BINARY hex instead of compact preview.
+        self.show_blob: bool = False
 
         # public AutoMapper.ConfigurationStore AutoMapperConfig { get; set; }
         # public AutoMapper.MappingEngine MappingEngine { get; set; }

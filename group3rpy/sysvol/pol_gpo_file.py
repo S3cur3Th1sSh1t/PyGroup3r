@@ -22,11 +22,18 @@ SIGNATURE = 0x67655250
 # PORT NOTE: REG_BINARY (and other non-string registry types) must never be
 # decoded as UTF-16 for display. Random cert/key blobs (e.g. EFSBlob) decode
 # into CJK mojibake. value_bytes always keeps the raw bytes for analysis;
-# value_string carries the full hex so the report has the complete blob.
+# value_string carries a compact "<binary, N bytes> + ~2 lines hex" preview.
+# The full hex is only rendered when -b/--show-blob is given (see
+# NiceGpoPrinter, which expands from value_bytes).
+_BINARY_PREVIEW_HEX_CHARS = 160
+
+
 def _format_binary_display(raw: bytes) -> str:
     if not raw:
         return "<binary, 0 bytes>"
-    return f"<binary, {len(raw)} bytes> {raw.hex()}"
+    if len(raw.hex()) <= _BINARY_PREVIEW_HEX_CHARS:
+        return f"<binary, {len(raw)} bytes> {raw.hex()}"
+    return f"<binary, {len(raw)} bytes> {raw.hex()[:_BINARY_PREVIEW_HEX_CHARS]}..."
 
 
 class _Reader:
