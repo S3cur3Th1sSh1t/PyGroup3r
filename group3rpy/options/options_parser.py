@@ -142,7 +142,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Minimum severity of findings to show where 1 is lowest severity and 4 is highest.",
     )
     parser.add_argument(
-        "-u",
         "--testuser",
         help="Permission checks will focus on what access is available to this user. Format as domain\\user",
     )
@@ -152,10 +151,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     # PORT ADDITIONS. The C# picks the current user's credentials and DC up from
     # the Windows session; on Linux/impacket they have to be given explicitly.
-    # NOTE: -u is already taken by the original's --testuser, so --username has no
-    # short form. -d/--domain is the original's flag and doubles as the auth
-    # domain.
-    parser.add_argument("--username", help="PORT ADDITION: username to authenticate with.")
+    # NOTE: -u is the impacket-style short form for --username. --testuser keeps
+    # long-only form to avoid the clash. -d/--domain is the original's flag and
+    # doubles as the auth domain.
+    parser.add_argument("-u", "--username", help="PORT ADDITION: username to authenticate with.")
     parser.add_argument("-p", "--password", help="PORT ADDITION: password to authenticate with.")
     parser.add_argument(
         "-H", "--hashes", metavar="LMHASH:NTHASH", help="PORT ADDITION: NTLM hashes to authenticate with."
@@ -367,7 +366,7 @@ def parse(args: List[str], mq):
     # PORT NOTE: GrouperOptions.TargetUserName defaults to
     # WindowsIdentity.GetCurrent().Name in the C#. With no Windows session to ask,
     # the credentials we were handed stand in for it: DOMAIN\username, or just the
-    # username when no domain was given. -u/--testuser still wins, exactly as it
+    # username when no domain was given. --testuser still wins, exactly as it
     # does in the original.
     if _is_null_or_empty(options.target_user_name) and not _is_null_or_empty(options.username):
         if not _is_null_or_empty(options.target_domain):

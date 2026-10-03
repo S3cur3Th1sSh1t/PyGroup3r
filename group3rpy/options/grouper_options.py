@@ -25,7 +25,7 @@ class GrouperOptions:
         # PORT NOTE: the C# default is `WindowsIdentity.GetCurrent().Name`, i.e.
         # the identity of the Windows session Group3r is running in. There is no
         # such session here, so OptionsParser fills this in from the credentials
-        # it was given (`DOMAIN\\username`) unless -u/--testuser says otherwise.
+        # it was given (`DOMAIN\\username`) unless --testuser says otherwise.
         self.target_user_name: Optional[str] = None
 
         # Concurrency Options
