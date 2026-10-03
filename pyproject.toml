@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygroup3r"
+version = "1.0.0"
+description = "A Python port of Group3r — the Group Policy auditing tool by @mikeloss — that authenticates with impacket so it runs from Linux, plus a filterable single-file HTML report on top of the original output formats."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "GPL-3.0-only" }
+
+dependencies = [
+    "pycryptodomex>=3.19.0",
+    "impacket>=0.12.0",
+]
+
+[project.scripts]
+pygroup3r = "group3rpy.runner:main"
+
+[tool.setuptools.packages.find]
+include = ["group3rpy*"]
+
+[tool.setuptools.package-data]
+group3rpy = ["view/report_template.html"]

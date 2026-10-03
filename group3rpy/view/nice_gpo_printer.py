@@ -443,7 +443,7 @@ class NiceGpoPrinter(IGpoPrinter):
                 for value in cs.values:
                     s_table = self.table_add(s_table, "Value Name", value.value_name)
                     s_table = self.table_add(s_table, "Value Type", dotnet_str(value.reg_key_val_type))
-                    s_table = self.table_add(s_table, "Value String", value.value_string)
+                    s_table = self.table_add(s_table, "Value String", self._registry_value_display(value))
 
                 # PORT NOTE: the C# has a stray `Console.WriteLine(sTable.ToMarkDownString());`
                 # here, which dumps every registry table to the console a second
@@ -617,6 +617,19 @@ class NiceGpoPrinter(IGpoPrinter):
     def chunks_upto(str_: str, max_chunk_size: int) -> Iterator[str]:
         for i in range(0, len(str_), max_chunk_size):
             yield str_[i : i + min(max_chunk_size, len(str_) - i)]
+
+    def _registry_value_display(self, value) -> Optional[str]:
+        """Compact REG_BINARY preview by default, full hex with -b/--show-blob.
+
+        Parse time always stores the compact preview in value_string and the
+        raw bytes in value_bytes; expanding here keeps stdout, -f and --html
+        consistent behind the same flag.
+        """
+        if getattr(self.grouper_options, "show_blob", False):
+            raw = getattr(value, "value_bytes", None)
+            if raw:
+                return f"<binary, {len(raw)} bytes> {bytes(raw).hex()}"
+        return value.value_string
 
     def table_add(self, table: ConsoleTable, v1: Optional[str], v2: Optional[str]) -> ConsoleTable:
         if _is_null_or_white_space(v2):

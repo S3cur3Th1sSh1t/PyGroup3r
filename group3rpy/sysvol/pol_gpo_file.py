@@ -19,6 +19,22 @@ from .gpo_file import GpoFile
 
 SIGNATURE = 0x67655250
 
+# PORT NOTE: REG_BINARY (and other non-string registry types) must never be
+# decoded as UTF-16 for display. Random cert/key blobs (e.g. EFSBlob) decode
+# into CJK mojibake. value_bytes always keeps the raw bytes for analysis;
+# value_string carries a compact "<binary, N bytes> + ~2 lines hex" preview.
+# The full hex is only rendered when -b/--show-blob is given (see
+# NiceGpoPrinter, which expands from value_bytes).
+_BINARY_PREVIEW_HEX_CHARS = 160
+
+
+def _format_binary_display(raw: bytes) -> str:
+    if not raw:
+        return "<binary, 0 bytes>"
+    if len(raw.hex()) <= _BINARY_PREVIEW_HEX_CHARS:
+        return f"<binary, {len(raw)} bytes> {raw.hex()}"
+    return f"<binary, {len(raw)} bytes> {raw.hex()[:_BINARY_PREVIEW_HEX_CHARS]}..."
+
 
 class _Reader:
     """The bits of System.IO.BinaryReader(stream, Encoding.Unicode) that are used."""
@@ -104,18 +120,26 @@ class PolGpoFile(GpoFile):
             setting_size = reader.read_uint32()
             reader.read_char()
             reg_val.value_bytes = reader.read_bytes(setting_size)
-            if reg_val.reg_key_val_type == RegKeyValType.REG_DWORD:
+            vtype = reg_val.reg_key_val_type
+            if vtype == RegKeyValType.REG_DWORD and len(reg_val.value_bytes) >= 4:
                 key_int = struct.unpack_from("<i", reg_val.value_bytes, 0)[0]
                 reg_val.value_string = str(key_int)
-            elif (reg_val.reg_key_val_type == RegKeyValType.REG_SZ) or (
-                reg_val.reg_key_val_type == RegKeyValType.REG_MULTI_SZ
+            elif vtype == RegKeyValType.REG_DWORD_BIG_ENDIAN and len(reg_val.value_bytes) >= 4:
+                key_int = struct.unpack_from(">i", reg_val.value_bytes, 0)[0]
+                reg_val.value_string = str(key_int)
+            elif vtype == RegKeyValType.REG_QWORD and len(reg_val.value_bytes) >= 8:
+                key_int = struct.unpack_from("<q", reg_val.value_bytes, 0)[0]
+                reg_val.value_string = str(key_int)
+            elif vtype in (
+                RegKeyValType.REG_SZ,
+                RegKeyValType.REG_EXPAND_SZ,
+                RegKeyValType.REG_MULTI_SZ,
+                RegKeyValType.REG_LINK,
             ):
                 dirtystring = reg_val.value_bytes.decode("utf-16-le", errors="replace")
                 reg_val.value_string = dirtystring.replace("\0", " ")
             else:
-                reg_val.value_string = reg_val.value_bytes.decode(
-                    "utf-16-le", errors="replace"
-                )
+                reg_val.value_string = _format_binary_display(reg_val.value_bytes)
             reader.read_char()
             setting.values.append(reg_val)
             self.settings.append(setting)
