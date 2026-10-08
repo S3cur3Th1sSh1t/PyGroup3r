@@ -23,7 +23,7 @@ environments, which is effectively unsearchable.
 ## Install
 
 ```bash
-pipx install git+https://github.com/magev0/PyGroup3r.git
+pipx install git+https://github.com/S3cur3Th1sSh1t/PyGroup3r.git
 # run it with:
 pygroup3r -h
 # upgrade later with:
