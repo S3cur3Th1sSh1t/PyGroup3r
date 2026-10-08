@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygroup3r"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "impacket>=0.12.0",
+    "pycryptodomex>=3.19.0",
+]
+
+[project.scripts]
+pygroup3r = "group3rpy.runner:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["group3rpy", "group3rpy.*"]
+
+[tool.setuptools.package-data]
+"group3rpy.view" = ["report_template.html"]

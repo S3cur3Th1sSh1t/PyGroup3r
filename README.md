@@ -22,39 +22,92 @@ environments, which is effectively unsearchable.
 
 ## Install
 
+Python 3.12+ is required. Runtime dependencies are impacket and pycryptodomex
+only; the HTML report has **no** external dependencies at all.
+
+### Install with uv
+
+Install PyGroup3r into an isolated environment and make the `pygroup3r`
+command available on your PATH:
+
 ```bash
-python3 -m pip install impacket pycryptodomex
-# for the test suite:
-python3 -m pip install pytest playwright && python3 -m playwright install chromium
+uv tool install --python 3.12 git+https://github.com/S3cur3Th1sSh1t/PyGroup3r.git
+pygroup3r --help
 ```
 
-Python 3.12+. Runtime dependencies are impacket and pycryptodomex only; the HTML
-report has **no** external dependencies at all.
+If the executable directory is not on your PATH, run `uv tool update-shell`
+and open a new terminal.
+
+### Install from a checkout
+
+```bash
+git clone https://github.com/S3cur3Th1sSh1t/PyGroup3r.git
+cd PyGroup3r
+uv tool install --python 3.12 .
+pygroup3r --help
+```
+
+For development, use an editable installation so changes in the checkout
+are reflected in the installed command:
+
+```bash
+uv tool install --python 3.12 --editable .
+```
+
+Keep the checkout at its existing path when using an editable installation.
+
+### Use a virtual environment
+
+Alternatively, install the package into a local virtual environment:
+
+```bash
+uv venv --python 3.12
+uv pip install --python .venv/bin/python -e .
+.venv/bin/python -m group3rpy --help
+```
+
+This does not require activating the virtual environment. Run these commands
+from the repository directory.
+
+### Test suite
+
+From a checkout, create a virtual environment if you do not already have one,
+then install the development dependencies and Chromium:
+
+```bash
+uv venv --python 3.12
+uv pip install --python .venv/bin/python -r requirements-dev.txt
+.venv/bin/python -m playwright install chromium
+.venv/bin/python -m pytest
+```
 
 ## Usage
 
+Examples use the installed `pygroup3r` command. When working from a checkout
+with a local virtual environment, use `.venv/bin/python -m group3rpy` instead.
+
 ```bash
 # Online, password auth, with the HTML report
-python3 -m group3rpy -d corp.local --username jbloggs -p 'Passw0rd!' \
+pygroup3r -d corp.local --username jbloggs -p 'Passw0rd!' \
     --dc-ip 10.0.0.10 -s --html report.html
 
 # Pass-the-hash
-python3 -m group3rpy -d corp.local --username jbloggs \
+pygroup3r -d corp.local --username jbloggs \
     -H :2b576acbe6bcfda7294d6bd18041b8fe --dc-ip 10.0.0.10 -s
 
 # Kerberos from an existing ccache
 export KRB5CCNAME=jbloggs.ccache
-python3 -m group3rpy -d corp.local -k --dc-ip 10.0.0.10 -s
+pygroup3r -d corp.local -k --dc-ip 10.0.0.10 -s
 
 # With blast-radius resolution and a BloodHound edge export
-python3 -m group3rpy -d corp.local --username jbloggs -p 'Passw0rd!' \
+pygroup3r -d corp.local --username jbloggs -p 'Passw0rd!' \
     --dc-ip 10.0.0.10 -s --scope --html report.html --bloodhound edges
 
 # Offline against a SYSVOL copy (no DC needed)
-python3 -m group3rpy -o -y /mnt/sysvol -s --html report.html
+pygroup3r -o -y /mnt/sysvol -s --html report.html
 
 # Only findings, Red and above, to a file
-python3 -m group3rpy -d corp.local --username jbloggs -p 'Passw0rd!' \
+pygroup3r -d corp.local --username jbloggs -p 'Passw0rd!' \
     -w -a 3 -f group3r.txt
 ```
 
