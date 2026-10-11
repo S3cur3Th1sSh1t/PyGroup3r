@@ -61,6 +61,7 @@ _DECLARATION_ORDER: List[str] = [
     "scope",
     "scope-users",
     "bloodhound",
+    "show-blob",
 ]
 
 # Long name -> (argparse dest, is switch).
@@ -89,6 +90,7 @@ _ARG_INFO = {
     "scope": ("scope", True),
     "scope-users": ("scope_users", True),
     "bloodhound": ("bloodhound", False),
+    "show-blob": ("show_blob", True),
 }
 
 
@@ -99,7 +101,7 @@ def build_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(prog="group3r", add_help=False)
 
-    # letters i haven't used abegijklmnw
+    # letters i haven't used aegijklmnw
     # parser.Arguments.Add(new ValueArgument<string>('z', "config", "Path to a .toml config file. Run with 'generate' to puke a sample config file into the working directory."));
     parser.add_argument("-c", "--dc", help="Target Domain controller")
     parser.add_argument("-d", "--domain", help="Domain to query.")
@@ -142,7 +144,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Minimum severity of findings to show where 1 is lowest severity and 4 is highest.",
     )
     parser.add_argument(
-        "-u",
         "--testuser",
         help="Permission checks will focus on what access is available to this user. Format as domain\\user",
     )
@@ -152,10 +153,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     # PORT ADDITIONS. The C# picks the current user's credentials and DC up from
     # the Windows session; on Linux/impacket they have to be given explicitly.
-    # NOTE: -u is already taken by the original's --testuser, so --username has no
-    # short form. -d/--domain is the original's flag and doubles as the auth
-    # domain.
-    parser.add_argument("--username", help="PORT ADDITION: username to authenticate with.")
+    # NOTE: -u is the impacket-style short form for --username. --testuser keeps
+    # long-only form to avoid the clash. -d/--domain is the original's flag and
+    # doubles as the auth domain.
+    parser.add_argument("-u", "--username", help="PORT ADDITION: username to authenticate with.")
     parser.add_argument("-p", "--password", help="PORT ADDITION: password to authenticate with.")
     parser.add_argument(
         "-H", "--hashes", metavar="LMHASH:NTHASH", help="PORT ADDITION: NTLM hashes to authenticate with."
@@ -186,6 +187,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--bloodhound",
         help="PORT ADDITION: path prefix for BloodHound edge export; writes "
         "<prefix>.json and <prefix>.cypher. Implies --scope.",
+    )
+    parser.add_argument(
+        "-b",
+        "--show-blob",
+        action="store_true",
+        help="PORT ADDITION: show full REG_BINARY hex (e.g. EFSBlob) instead of 2-line preview.",
     )
     return parser
 
@@ -359,6 +366,9 @@ def parse(args: List[str], mq):
             # Edges are meaningless without knowing which computers a GPO reaches.
             options.resolve_scope = True
             mq.degub("Writing BloodHound edge export to " + value)
+        elif long_name == "show-blob":
+            options.show_blob = True
+            mq.degub("Showing full REG_BINARY blobs.")
         else:
             raise CommandLineArgumentException(
                 "Something went real squirrelly in the command line args.", value
@@ -367,7 +377,7 @@ def parse(args: List[str], mq):
     # PORT NOTE: GrouperOptions.TargetUserName defaults to
     # WindowsIdentity.GetCurrent().Name in the C#. With no Windows session to ask,
     # the credentials we were handed stand in for it: DOMAIN\username, or just the
-    # username when no domain was given. -u/--testuser still wins, exactly as it
+    # username when no domain was given. --testuser still wins, exactly as it
     # does in the original.
     if _is_null_or_empty(options.target_user_name) and not _is_null_or_empty(options.username):
         if not _is_null_or_empty(options.target_domain):

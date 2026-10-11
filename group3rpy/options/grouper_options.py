@@ -25,7 +25,7 @@ class GrouperOptions:
         # PORT NOTE: the C# default is `WindowsIdentity.GetCurrent().Name`, i.e.
         # the identity of the Windows session Group3r is running in. There is no
         # such session here, so OptionsParser fills this in from the credentials
-        # it was given (`DOMAIN\\username`) unless -u/--testuser says otherwise.
+        # it was given (`DOMAIN\\username`) unless --testuser says otherwise.
         self.target_user_name: Optional[str] = None
 
         # Concurrency Options
@@ -56,6 +56,8 @@ class GrouperOptions:
         self.resolve_scope: bool = False
         self.scope_users: bool = False
         self.bloodhound_path: Optional[str] = None
+        # PORT ADDITION: show full REG_BINARY hex instead of compact preview.
+        self.show_blob: bool = False
 
         # public AutoMapper.ConfigurationStore AutoMapperConfig { get; set; }
         # public AutoMapper.MappingEngine MappingEngine { get; set; }
